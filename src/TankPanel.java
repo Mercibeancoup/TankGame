@@ -1,5 +1,8 @@
 import javax.swing.*;
 
+import domain.EmeryTank;
+import domain.HeroTank;
+
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;

@@ -1,3 +1,4 @@
+package domain;
 /**
  * 定义坦克类
  * 

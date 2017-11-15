@@ -1,3 +1,5 @@
+package domain;
+
 
 public class EmeryTank extends Tank{
 
