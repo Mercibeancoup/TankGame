@@ -10,7 +10,7 @@ public class Bullet implements Runnable {
 	private int y;
 	private int direction;//子弹方向
 	private int speed=1;//子弹速度
-	private int isValid=0;  //子弹是否死亡，默认活着 1为死亡
+	private int isValid=0;  //子弹是否死亡，默认0：活着 1为死亡
 	//构造函数
 	public Bullet(int x, int y, int direction) {
 		super();

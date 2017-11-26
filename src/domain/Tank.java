@@ -13,7 +13,10 @@ public class Tank {
 	private int direction = 0;// 定义默认0，向上，1向左，2向下，3向右
 	private int speed = 10;// 坦克速度
 	private int type = 0;// 坦克类型
-
+	//private boolean isLive=0;//坦克是否活着 ，默认为
+	private int isValid=0; //坦克是否死亡，默认0：活着 1为死亡
+	
+	
 	private Bullet bullet = null;
 	private Vector<Bullet> bullets = new Vector<Bullet>();// 子彈的集合
 
@@ -155,5 +158,18 @@ public class Tank {
 	public void setBullets(Vector<Bullet> bullets) {
 		this.bullets = bullets;
 	}
+
+	public int getIsValid() {
+		return isValid;
+	}
+
+	public void setIsValid(int isValid) {
+		this.isValid = isValid;
+	}
+
+
+
+	
+	
 
 }
