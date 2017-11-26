@@ -13,6 +13,9 @@ public class BattleField extends JFrame{
 		//设置组件
 		htp= new TankPanel();
 		
+		//启动线程
+		Thread htpThread= new Thread(htp);
+		htpThread.start();
 		//设置布局
 		//添加组件
 		this.add(htp);
