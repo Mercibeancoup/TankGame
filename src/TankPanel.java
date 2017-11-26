@@ -1,6 +1,7 @@
 import javax.swing.*;
 
 import domain.EmeryTank;
+import domain.ExplosionEffect;
 import domain.HeroTank;
 import domain.Bullet;
 import domain.Tank;
@@ -11,9 +12,16 @@ import java.awt.event.KeyListener;
 import java.util.Vector;
 
 public class TankPanel extends JPanel implements KeyListener, Runnable {
-	HeroTank herotank = null;
-	Vector<EmeryTank> emerytanks = new Vector<EmeryTank>();
-
+	HeroTank herotank = null;//我方坦克
+	Vector<EmeryTank> emerytanks = new Vector<EmeryTank>();//敌方坦克
+	Vector<ExplosionEffect> effects=new Vector<ExplosionEffect>();
+	
+	
+	//初始化爆炸效果的三张图片，组合成一个爆炸效果
+	Image image1=null;
+	Image image2=null;
+	Image image3=null;
+	
 	public TankPanel() {
 		herotank = new HeroTank(100, 100);
 		for (int i = 0; i < 3; i++) {
@@ -21,6 +29,10 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 			et.setDirection(2);
 			emerytanks.add(et);
 		}
+		//定义图片路径
+		image1=Toolkit.getDefaultToolkit().getImage(Panel.class.getResource("/bomb_1.gif"));
+		image2=Toolkit.getDefaultToolkit().getImage(Panel.class.getResource("/bomb_2.gif"));
+		image3=Toolkit.getDefaultToolkit().getImage(Panel.class.getResource("/bomb_3.gif"));
 
 	}
 
@@ -45,7 +57,7 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 			if(emeryTank.getIsValid()==1){
 				this.emerytanks.remove(i);
 			}
-			System.out.println(emeryTank.toString());
+			//System.out.println(emeryTank.toString());
 		}
 
 		// 画出我方坦克子弹
@@ -56,7 +68,6 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 		 */
 
 		// 画出我方坦克子弹 支持连发
-
 		for (int i = 0; i < this.herotank.getBullets().size(); i++) {
 			Bullet bullet = this.herotank.getBullets().get(i);
 			if (bullet != null && bullet.getIsValid() == 0) {
@@ -68,7 +79,28 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 				this.herotank.getBullets().remove(bullet);
 			}
 		}
-
+		
+		//画出炸弹效果
+		for (int i = 0; i < effects.size(); i++) {
+			ExplosionEffect effect= effects.get(i);
+			//System.out.println(effect.getX());
+			//根据爆炸效果的生命周期，替换爆炸效果图片
+			if(effect.getLifeTime()>7){
+				g.drawImage(image1, effect.getX(), effect.getY(), 30, 30,this);
+			}else if(effect.getLifeTime()>5){
+				g.drawImage(image2, effect.getX(), effect.getY(), 30, 30,this);
+			}else {
+				g.drawImage(image3, effect.getX(), effect.getY(), 30, 30,this);
+			}
+			// 调用减生命值函数
+			effect.lifeDown();
+			
+			//如果生命周期降为零，则移除该爆炸效果
+			if(effect.getLifeTime()==0){
+				effects.remove(effect);
+			}
+			
+		}
 	}
 
 	// 封装画坦克的函数
@@ -184,6 +216,11 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 						&& y >= tank.getY() && y <= tank.getY() + 30) {
 					bullet.setIsValid(1);
 					tank.setIsValid(1);
+					
+					//添加爆炸效果类
+					ExplosionEffect effect=new ExplosionEffect(tank.getX(), tank.getY());
+					//在爆炸效果类添加爆炸效果
+					effects.add(effect);
 				}
 				break;
 			case 1:
@@ -192,6 +229,11 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 						&& y < tank.getY() && y >= tank.getY() + 20) {
 					bullet.setIsValid(1);
 					tank.setIsValid(1);
+					
+					//添加爆炸效果类
+					ExplosionEffect effect=new ExplosionEffect(tank.getX(), tank.getY());
+					//在爆炸效果类添加爆炸效果
+					effects.add(effect);
 				}
 				break;
 			}

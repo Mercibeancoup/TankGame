@@ -23,7 +23,7 @@ public class Bullet implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("调用了Bullet的run方法");
+		//System.out.println("调用了Bullet的run方法");
 
 		while (true){
 			try {
@@ -50,8 +50,8 @@ public class Bullet implements Runnable {
 				break;	
 			
 			}
-			System.out.println("x"+x+",y"+y);
-			System.out.println(speed);
+			//System.out.println("x"+x+",y"+y);
+			//System.out.println(speed);
 			//子弹何时死亡
 			if(this.x<=0||this.x>=400||this.y<=0||this.y>=400){
 				this.isValid=1;
