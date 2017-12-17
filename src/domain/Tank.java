@@ -11,11 +11,9 @@ import java.util.Vector;
 public class Tank {
 	private int x, y;// 定义坐标
 	private int direction = 0;// 定义默认0，向上，1向左，2向下，3向右
-	private int speed = 10;// 坦克速度
+	private int speed = 5;// 坦克速度
 	private int type = 0;// 坦克类型
-	//private boolean isLive=0;//坦克是否活着 ，默认为
 	private int isValid=0; //坦克是否死亡，默认0：活着 1为死亡
-	
 	
 	private Bullet bullet = null;
 	private Vector<Bullet> bullets = new Vector<Bullet>();// 子彈的集合
@@ -59,7 +57,7 @@ public class Tank {
 
 	// 坦克向下移动
 	public void MoveDown() {
-		System.out.print("调用了向下移动方法");
+		//System.out.print("调用了向下移动方法");
 		if (this.getY() >= 330) {// 不能超过游戏 范围
 			// this.setX(this.getX());
 			this.setY(330);
@@ -165,11 +163,5 @@ public class Tank {
 
 	public void setIsValid(int isValid) {
 		this.isValid = isValid;
-	}
-
-
-
-	
-	
-
+	}	
 }

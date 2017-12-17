@@ -4,7 +4,6 @@ import java.awt.*;
 /**
  * 战场
  * @author ZengYu
- *
  */
 public class BattleField extends JFrame{
 
@@ -16,6 +15,7 @@ public class BattleField extends JFrame{
 		//启动线程
 		Thread htpThread= new Thread(htp);
 		htpThread.start();
+		
 		//设置布局
 		//添加组件
 		this.add(htp);
@@ -30,7 +30,6 @@ public class BattleField extends JFrame{
 	}
 	public static void main(String[] args) {
 		BattleField bf= new BattleField();
-
 	}
 	
 }

@@ -1,38 +1,51 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
-import domain.EmeryTank;
-import domain.ExplosionEffect;
-import domain.HeroTank;
-import domain.Bullet;
-import domain.Tank;
-
+import domain.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.IOException;
 import java.util.Vector;
 
+/*
+ * 1.我方坦克和敌方可以自由移动
+ * 2.我方坦克和敌方坦克 可以发射子弹，
+ * 3.限定我方坦克和敌方坦克的运动范围
+ * */
 public class TankPanel extends JPanel implements KeyListener, Runnable {
-	HeroTank herotank = null;//我方坦克
-	Vector<EmeryTank> emerytanks = new Vector<EmeryTank>();//敌方坦克
-	Vector<ExplosionEffect> effects=new Vector<ExplosionEffect>();
-	
-	
-	//初始化爆炸效果的三张图片，组合成一个爆炸效果
-	Image image1=null;
-	Image image2=null;
-	Image image3=null;
-	
-	public TankPanel() {
+	HeroTank herotank = null;// 我方坦克
+	Vector<EmeryTank> emerytanks = new Vector<EmeryTank>();// 敌方坦克
+	Vector<ExplosionEffect> effects = new Vector<ExplosionEffect>();// 爆炸效果
+
+	// 初始化爆炸效果的三张图片，组合成一个爆炸效果
+	Image image1 = null;
+	Image image2 = null;
+	Image image3 = null;
+
+	public TankPanel()  {
+		//初始化我方坦克
 		herotank = new HeroTank(100, 100);
+		//初始化敌方坦克
 		for (int i = 0; i < 3; i++) {
 			EmeryTank et = new EmeryTank(i * 50, 0);
 			et.setDirection(2);
 			emerytanks.add(et);
+
+			// 启动坦克线程
+			Thread emeryTankThread = new Thread(et);
+			emeryTankThread.start();
 		}
-		//定义图片路径
-		image1=Toolkit.getDefaultToolkit().getImage(Panel.class.getResource("/bomb_1.gif"));
-		image2=Toolkit.getDefaultToolkit().getImage(Panel.class.getResource("/bomb_2.gif"));
-		image3=Toolkit.getDefaultToolkit().getImage(Panel.class.getResource("/bomb_3.gif"));
+
+		// 定义图片路径
+		try {
+			image1=ImageIO.read(Panel.class.getResource("/pic/bomb_1.gif"));
+			image2=ImageIO.read(Panel.class.getResource("/pic/bomb_2.gif"));
+			image3=ImageIO.read(Panel.class.getResource("/pic/bomb_3.gif"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 
 	}
 
@@ -48,24 +61,16 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 		// 画出敌人坦克
 		for (int i = 0; i < emerytanks.size(); i++) {
 			EmeryTank emeryTank = emerytanks.get(i);
-			//敌方坦克有效则进行绘制
+			// 敌方坦克有效则进行绘制
 			if (emeryTank.getIsValid() == 0) {
-				this.drawTank(emeryTank.getX(), emeryTank
-						.getY(), g, emeryTank.getDirection(),
-						emeryTank.getType());
+				this.drawTank(emeryTank.getX(), emeryTank.getY(), g,
+						emeryTank.getDirection(), emeryTank.getType());
 			}
-			if(emeryTank.getIsValid()==1){
+			//若是坦克失效，则移除该坦克
+			if (emeryTank.getIsValid() == 1) {
 				this.emerytanks.remove(i);
 			}
-			//System.out.println(emeryTank.toString());
 		}
-
-		// 画出我方坦克子弹
-		/*
-		 * if (this.herotank.getBullet() != null) { g.setColor(Color.white);
-		 * g.draw3DRect(this.herotank.getBullet().getX(), this.herotank
-		 * .getBullet().getY(), 1, 1, false); }
-		 */
 
 		// 画出我方坦克子弹 支持连发
 		for (int i = 0; i < this.herotank.getBullets().size(); i++) {
@@ -74,38 +79,48 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 				g.setColor(Color.white);
 				g.draw3DRect(bullet.getX(), bullet.getY(), 2, 2, false);
 			}
-			//子弹删除
+			// 子弹删除
 			if (bullet.getIsValid() == 1) {
 				this.herotank.getBullets().remove(bullet);
 			}
 		}
 		
-		//画出炸弹效果
+
+		// 画出炸弹效果
 		for (int i = 0; i < effects.size(); i++) {
-			ExplosionEffect effect= effects.get(i);
-			//System.out.println(effect.getX());
-			//根据爆炸效果的生命周期，替换爆炸效果图片
-			if(effect.getLifeTime()>7){
-				g.drawImage(image1, effect.getX(), effect.getY(), 30, 30,this);
-			}else if(effect.getLifeTime()>5){
-				g.drawImage(image2, effect.getX(), effect.getY(), 30, 30,this);
-			}else {
-				g.drawImage(image3, effect.getX(), effect.getY(), 30, 30,this);
+
+			System.out.println("炸彈總量" + effects.size());
+			ExplosionEffect effect = effects.get(i);
+			// System.out.println(effect.getX());
+			// 根据爆炸效果的生命周期，替换爆炸效果图片
+			try {
+				if (effect.getLifeTime() > 7) {
+					g.drawImage(image1, effect.getX(), effect.getY(), 30, 30,
+							this);
+				} else if (effect.getLifeTime() > 5) {
+					g.drawImage(image2, effect.getX(), effect.getY(), 30, 30,
+							this);
+				} else {
+					g.drawImage(image3, effect.getX(), effect.getY(), 30, 30,
+							this);
+				}
+			} catch (Exception ex) {
+				System.out.println(ex.toString());
 			}
 			// 调用减生命值函数
 			effect.lifeDown();
-			
-			//如果生命周期降为零，则移除该爆炸效果
-			if(effect.getLifeTime()==0){
+
+			// 如果生命周期降为零，则移除该爆炸效果
+			if (effect.getLifeTime() == 0) {
 				effects.remove(effect);
 			}
-			
+
 		}
 	}
 
-	// 封装画坦克的函数
+	
 	/**
-	 * 
+	 *  封装绘制坦克的函数 
 	 * @param x
 	 *            坦克坐标x
 	 * @param y
@@ -118,8 +133,7 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 	 *            坦克类型
 	 */
 	public void drawTank(int x, int y, Graphics g, int direction, int type) {
-		// 画出坦克
-
+		// 根據坦克的種類繪製不同的顔色
 		switch (type) {
 		// 我方坦克
 		case 0:
@@ -133,10 +147,11 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 			g.setColor(Color.pink);
 			break;
 		}
+
+		// 根據不同的方向 画出坦克
 		switch (direction) {
 		// 向上
 		case 0:
-
 			// 画出左边矩形
 			g.fill3DRect(x, y, 5, 30, false);
 			// 画出右边矩形
@@ -163,7 +178,6 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 			break;
 		// 向下
 		case 2:
-
 			// 画出左边矩形
 			g.fill3DRect(x, y, 5, 30, false);
 			// 画出右边矩形
@@ -195,7 +209,7 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 	}
 
 	/**
-	 * 更新坦克状态
+	 * 更新坦克状态生存状态，判断子弹是否击中坦克
 	 * 
 	 * @param tank
 	 *            坦克
@@ -204,7 +218,6 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 	 */
 	public void updateTankStatus(Tank tank, Bullet bullet) {
 		if (bullet.getIsValid() == 0 && tank.getIsValid() == 0) {
-
 			int dir = tank.getDirection();
 			int x = bullet.getX();
 			int y = bullet.getY();
@@ -216,10 +229,11 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 						&& y >= tank.getY() && y <= tank.getY() + 30) {
 					bullet.setIsValid(1);
 					tank.setIsValid(1);
-					
-					//添加爆炸效果类
-					ExplosionEffect effect=new ExplosionEffect(tank.getX(), tank.getY());
-					//在爆炸效果类添加爆炸效果
+
+					// 添加爆炸效果类
+					ExplosionEffect effect = new ExplosionEffect(tank.getX(),
+							tank.getY());
+					// 在爆炸效果类添加爆炸效果
 					effects.add(effect);
 				}
 				break;
@@ -229,10 +243,11 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 						&& y < tank.getY() && y >= tank.getY() + 20) {
 					bullet.setIsValid(1);
 					tank.setIsValid(1);
-					
-					//添加爆炸效果类
-					ExplosionEffect effect=new ExplosionEffect(tank.getX(), tank.getY());
-					//在爆炸效果类添加爆炸效果
+
+					// 添加爆炸效果类
+					ExplosionEffect effect = new ExplosionEffect(tank.getX(),
+							tank.getY());
+					// 在爆炸效果类添加爆炸效果
 					effects.add(effect);
 				}
 				break;
