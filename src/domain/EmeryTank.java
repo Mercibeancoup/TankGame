@@ -1,6 +1,8 @@
 package domain;
 
 public class EmeryTank extends Tank implements Runnable {
+	private int attackTime;
+	private int attackTimeSet = 2;
 
 	public EmeryTank(int x, int y) {
 		super(x, y);
@@ -36,7 +38,7 @@ public class EmeryTank extends Tank implements Runnable {
 					}
 					try {
 						Thread.sleep(50);
-					} catch (InterruptedException e) { 
+					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 
@@ -47,7 +49,7 @@ public class EmeryTank extends Tank implements Runnable {
 					if (this.getY() < 400) {
 						this.setY(this.getY() + this.getSpeed());
 					}
-					
+
 					try {
 						Thread.sleep(50);
 					} catch (InterruptedException e) {
@@ -61,7 +63,7 @@ public class EmeryTank extends Tank implements Runnable {
 					if (this.getX() < 400) {
 						this.setY(this.getX() + this.getSpeed());
 					}
-					
+
 					try {
 						Thread.sleep(50);
 					} catch (InterruptedException e) {
@@ -70,6 +72,21 @@ public class EmeryTank extends Tank implements Runnable {
 					}
 				}
 				break;
+			}
+
+			// 判断是否需要给坦克新增子弹
+			this.attackTime++;
+			if (this.attackTime % this.attackTimeSet == 0) {
+				// 坦克有效
+				if (this.getIsValid() == 0) {
+					// 坦克子弹为0
+					if (this.getBullets().size() < 5) {
+						this.attackEmery();
+						System.out.println(this.getX() + ":"
+								+ this.getY());
+					}
+
+				}
 			}
 
 			// 随机生成方向
@@ -81,6 +98,14 @@ public class EmeryTank extends Tank implements Runnable {
 				break;
 			}
 		}
+	}
+
+	public int getAttackTimeSet() {
+		return attackTimeSet;
+	}
+
+	public void setAttackTimeSet(int attackTimeSet) {
+		this.attackTimeSet = attackTimeSet;
 	}
 
 }

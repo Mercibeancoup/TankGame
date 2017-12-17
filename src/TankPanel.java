@@ -23,29 +23,35 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 	Image image2 = null;
 	Image image3 = null;
 
-	public TankPanel()  {
-		//初始化我方坦克
+	public TankPanel() {
+		// 初始化我方坦克
 		herotank = new HeroTank(100, 100);
-		//初始化敌方坦克
+		// 初始化敌方坦克
 		for (int i = 0; i < 3; i++) {
 			EmeryTank et = new EmeryTank(i * 50, 0);
 			et.setDirection(2);
 			emerytanks.add(et);
 
+			Bullet bullet = new Bullet(et.getX() + 10, et.getY() + 30,
+					et.getDirection());
+			et.getBullets().add(bullet);
+
 			// 启动坦克线程
 			Thread emeryTankThread = new Thread(et);
 			emeryTankThread.start();
+			// 启动子弹线程
+			Thread emeryBulletThread = new Thread(bullet);
+			emeryBulletThread.start();
 		}
 
 		// 定义图片路径
 		try {
-			image1=ImageIO.read(Panel.class.getResource("/pic/bomb_1.gif"));
-			image2=ImageIO.read(Panel.class.getResource("/pic/bomb_2.gif"));
-			image3=ImageIO.read(Panel.class.getResource("/pic/bomb_3.gif"));
+			image1 = ImageIO.read(Panel.class.getResource("/pic/bomb_1.gif"));
+			image2 = ImageIO.read(Panel.class.getResource("/pic/bomb_2.gif"));
+			image3 = ImageIO.read(Panel.class.getResource("/pic/bomb_3.gif"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 
 	}
 
@@ -55,19 +61,40 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 		super.paint(g);
 		g.fill3DRect(0, 0, 400, 400, false);
 		// 画出我方坦克
-		this.drawTank(this.herotank.getX(), this.herotank.getY(), g,
-				this.herotank.getDirection(), this.herotank.getType());
-
-		// 画出敌人坦克
+		if (this.herotank.getIsValid() == 0) {
+			this.drawTank(this.herotank.getX(), this.herotank.getY(), g,
+					this.herotank.getDirection(), this.herotank.getType());
+		}
+		// 画出敌人坦克 --并画出子弹
 		for (int i = 0; i < emerytanks.size(); i++) {
 			EmeryTank emeryTank = emerytanks.get(i);
+			Vector<Bullet> bullets = emeryTank.getBullets();
+
 			// 敌方坦克有效则进行绘制
 			if (emeryTank.getIsValid() == 0) {
 				this.drawTank(emeryTank.getX(), emeryTank.getY(), g,
 						emeryTank.getDirection(), emeryTank.getType());
 			}
-			//若是坦克失效，则移除该坦克
+
+			// 绘制子弹
+			for (int j = 0; j < bullets.size(); j++) {
+				Bullet bullet = bullets.get(j);
+				if (bullet.getIsValid() == 0 && bullet != null) {
+					g.setColor(Color.white);
+					g.draw3DRect(bullet.getX(), bullet.getY(), 2, 2, false);
+				}
+				if (bullet.getIsValid() == 1) {
+					this.emerytanks.get(i).getBullets().remove(j);
+				}
+			}
+			// 若是坦克失效，则移除该坦克
 			if (emeryTank.getIsValid() == 1) {
+				// 此处似乎无用
+				/*
+				 * for (int j = 0; j < bullets.size(); j++) { Bullet bullet =
+				 * bullets.get(j);
+				 * this.emerytanks.get(i).getBullets().remove(bullet); }
+				 */
 				this.emerytanks.remove(i);
 			}
 		}
@@ -84,43 +111,14 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 				this.herotank.getBullets().remove(bullet);
 			}
 		}
-		
 
 		// 画出炸弹效果
-		for (int i = 0; i < effects.size(); i++) {
-
-			System.out.println("炸彈總量" + effects.size());
-			ExplosionEffect effect = effects.get(i);
-			// System.out.println(effect.getX());
-			// 根据爆炸效果的生命周期，替换爆炸效果图片
-			try {
-				if (effect.getLifeTime() > 7) {
-					g.drawImage(image1, effect.getX(), effect.getY(), 30, 30,
-							this);
-				} else if (effect.getLifeTime() > 5) {
-					g.drawImage(image2, effect.getX(), effect.getY(), 30, 30,
-							this);
-				} else {
-					g.drawImage(image3, effect.getX(), effect.getY(), 30, 30,
-							this);
-				}
-			} catch (Exception ex) {
-				System.out.println(ex.toString());
-			}
-			// 调用减生命值函数
-			effect.lifeDown();
-
-			// 如果生命周期降为零，则移除该爆炸效果
-			if (effect.getLifeTime() == 0) {
-				effects.remove(effect);
-			}
-
-		}
+		this.drawEffects(g);
 	}
 
-	
 	/**
-	 *  封装绘制坦克的函数 
+	 * 封装绘制坦克的函数
+	 * 
 	 * @param x
 	 *            坦克坐标x
 	 * @param y
@@ -209,7 +207,45 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 	}
 
 	/**
-	 * 更新坦克状态生存状态，判断子弹是否击中坦克
+	 * 画出炸弹效果
+	 * 
+	 * @param g
+	 */
+	public void drawEffects(Graphics g) {
+		// 画出炸弹效果
+		for (int i = 0; i < effects.size(); i++) {
+
+			System.out.println("炸彈總量" + effects.size());
+			ExplosionEffect effect = effects.get(i);
+			// System.out.println(effect.getX());
+			// 根据爆炸效果的生命周期，替换爆炸效果图片
+			try {
+				if (effect.getLifeTime() > 7) {
+					g.drawImage(image1, effect.getX(), effect.getY(), 30, 30,
+							this);
+				} else if (effect.getLifeTime() > 5) {
+					g.drawImage(image2, effect.getX(), effect.getY(), 30, 30,
+							this);
+				} else {
+					g.drawImage(image3, effect.getX(), effect.getY(), 30, 30,
+							this);
+				}
+			} catch (Exception ex) {
+				System.out.println(ex.toString());
+			}
+			// 调用减生命值函数
+			effect.lifeDown();
+
+			// 如果生命周期降为零，则移除该爆炸效果
+			if (effect.getLifeTime() == 0) {
+				effects.remove(effect);
+			}
+
+		}
+	}
+
+	/**
+	 * 更新坦克状态生存状态，判断子弹是否击中坦克,并更新爆炸效果
 	 * 
 	 * @param tank
 	 *            坦克
@@ -321,13 +357,26 @@ public class TankPanel extends JPanel implements KeyListener, Runnable {
 			}
 
 			// 更新敌方坦克状态
-			for (int i = 0; i < herotank.getBullets().size(); i++) {
-				Bullet heroBullet = herotank.getBullets().get(i);
-				for (int j = 0; j < emerytanks.size(); j++) {
-					Tank emeryTank = emerytanks.get(j);
-					updateTankStatus(emeryTank, heroBullet);
+			for (Bullet herobullet : herotank.getBullets()) {
+				for (EmeryTank emeryTank : emerytanks) {
+					updateTankStatus(emeryTank, herobullet);
 				}
 			}
+			// 更新我方坦克状态
+			for (EmeryTank emeryTank : emerytanks) {
+				for (Bullet emeryBullet : emeryTank.getBullets()) {
+					updateTankStatus(herotank, emeryBullet);
+				}
+
+			}
+			/*
+			 * // 判断是否需要给敌方坦克新增子弹 for (EmeryTank emeryTank : emerytanks) {
+			 * //坦克有效 if (emeryTank.getIsValid() == 0) { //坦克子弹为0 if
+			 * (emeryTank.getBullets().size() < 5) { emeryTank.attackEmery();
+			 * System.out.println(emeryTank.getX()+":"+emeryTank.getY()); }
+			 * 
+			 * } }
+			 */
 
 			// 更新我方坦克状态
 			/*

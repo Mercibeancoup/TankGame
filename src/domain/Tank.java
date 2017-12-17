@@ -4,7 +4,6 @@ import java.util.Vector;
 
 /**
  * 定义坦克类
- * 
  * @author ZengYu
  * 
  */

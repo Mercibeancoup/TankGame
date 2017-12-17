@@ -5,7 +5,4 @@ public class HeroTank extends Tank {
 		super(x, y);
 		this.setType(0);
 	}
-	
-
-
 }
